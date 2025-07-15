@@ -71,8 +71,8 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
 
   const tekan = () => {
     if (gagalMuat) return;
-    setPakaiCadangan((prev) => !prev);
-    setSkala((prev) => Math.min(prev + 0.2, 2)); // naik bertahap max 2x
+    setPakaiCadangan(prev => !prev);
+    setSkala(prev => Math.min(prev + 0.2, 2)); // Bertambah 0.2x per klik, maksimal 2x
   };
 
   const gambarDipakai = pakaiCadangan ? sumber.cadangan : sumber.asli;
@@ -96,7 +96,7 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
 
 export default function Grid3x3Tetap() {
   const lebar = Dimensions.get("window").width;
-  const ukuranKotak = lebar / 3 - 6;
+  const ukuranKotak = lebar / 3 - 8; // Sedikit jarak margin
 
   const baris1 = GAMBAR_DATA.slice(0, 3);
   const baris2 = GAMBAR_DATA.slice(3, 6);
@@ -129,7 +129,7 @@ export default function Grid3x3Tetap() {
 const gaya = StyleSheet.create({
   latar: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#fff",
   },
   kontainer: {
     paddingVertical: 10,
@@ -137,28 +137,28 @@ const gaya = StyleSheet.create({
   },
   baris: {
     flexDirection: "row",
-    marginBottom: 6,
+    marginBottom: 8,
   },
   kotakWrapper: {
-    marginHorizontal: 3,
+    marginHorizontal: 4,
   },
   kotakGambar: {
     flex: 1,
     aspectRatio: 1,
-    borderRadius: 8,
+    borderRadius: 10,
     overflow: "hidden",
   },
   gambar: {
     width: "100%",
     height: "100%",
-    borderRadius: 8,
+    borderRadius: 10,
   },
   tampilanError: {
     flex: 1,
     backgroundColor: "#ffeeee",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: 10,
   },
   tulisanError: {
     color: "#aa0000",
