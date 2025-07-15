@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from "react-native";
 
+// Daftar gambar dengan link utama dan cadangan
 const GAMBAR_DATA = [
   {
     penanda: 1,
@@ -58,21 +59,24 @@ const GAMBAR_DATA = [
   },
 ];
 
+// Tipe data untuk gambar
 type DataGambar = {
   penanda: number;
   asli: string;
   cadangan: string;
 };
 
+// Komponen gambar interaktif
 const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
   const [pakaiCadangan, setPakaiCadangan] = useState(false);
   const [skala, setSkala] = useState(1);
   const [gagalMuat, setGagalMuat] = useState(false);
 
+  // Saat gambar ditekan: ubah gambar + tingkatkan skala
   const tekan = () => {
     if (gagalMuat) return;
-    setPakaiCadangan(prev => !prev);
-    setSkala(prev => Math.min(prev + 0.2, 2)); // Bertambah 0.2x per klik, maksimal 2x
+    setPakaiCadangan((prev) => !prev);
+    setSkala((prev) => Math.min(prev * 1.2, 2)); // batas maksimal skala 2x
   };
 
   const gambarDipakai = pakaiCadangan ? sumber.cadangan : sumber.asli;
@@ -84,19 +88,26 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
           <Text style={gaya.tulisanError}>Gagal</Text>
         </View>
       ) : (
-        <Image
-          source={{ uri: gambarDipakai }}
-          onError={() => setGagalMuat(true)}
-          style={[gaya.gambar, { transform: [{ scale: skala }] }]}
-        />
+        <>
+          <Image
+            source={{ uri: gambarDipakai }}
+            onError={() => setGagalMuat(true)}
+            style={[gaya.gambar, { transform: [{ scale: skala }] }]}
+          />
+          {/* Label skala */}
+          <View style={gaya.labelSkala}>
+            <Text style={gaya.teksSkala}>x{skala.toFixed(1)}</Text>
+          </View>
+        </>
       )}
     </TouchableOpacity>
   );
 };
 
+// Komponen utama
 export default function Grid3x3Tetap() {
   const lebar = Dimensions.get("window").width;
-  const ukuranKotak = lebar / 3 - 8; // Sedikit jarak margin
+  const ukuranKotak = lebar / 3 - 6;
 
   const baris1 = GAMBAR_DATA.slice(0, 3);
   const baris2 = GAMBAR_DATA.slice(3, 6);
@@ -126,10 +137,11 @@ export default function Grid3x3Tetap() {
   );
 }
 
+// Style
 const gaya = StyleSheet.create({
   latar: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
   },
   kontainer: {
     paddingVertical: 10,
@@ -137,31 +149,45 @@ const gaya = StyleSheet.create({
   },
   baris: {
     flexDirection: "row",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   kotakWrapper: {
-    marginHorizontal: 4,
+    marginHorizontal: 3,
   },
   kotakGambar: {
     flex: 1,
     aspectRatio: 1,
-    borderRadius: 10,
+    borderRadius: 8,
     overflow: "hidden",
+    position: "relative",
   },
   gambar: {
     width: "100%",
     height: "100%",
-    borderRadius: 10,
+    borderRadius: 8,
   },
   tampilanError: {
     flex: 1,
     backgroundColor: "#ffeeee",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: 8,
   },
   tulisanError: {
     color: "#aa0000",
+    fontSize: 12,
+  },
+  labelSkala: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  teksSkala: {
+    color: "white",
     fontSize: 12,
   },
 });
