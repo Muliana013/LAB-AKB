@@ -60,7 +60,8 @@ type DataGambar = {
 const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
   // State untuk menentukan apakah menggunakan gambar cadangan
   const [pakaiCadangan, setPakaiCadangan] = useState(false);
-  // State untuk skala gambar saat diklik
+  // State untuk skala gambar saat diklik.
+  // Fitur: Setiap gambar memiliki state scaling sendiri.
   const [skala, setSkala] = useState(1);
   // State untuk menandai apakah gambar gagal dimuat
   const [gagalMuat, setGagalMuat] = useState(false);
@@ -69,11 +70,11 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
   const tekan = () => {
     // Jika gambar sudah gagal dimuat, jangan lakukan apa-apa
     if (gagalMuat) return;
-    // Fungsionalitas perubahan gambar ke versi cadangan saat diklik
+    // Fitur: Fungsionalitas perubahan gambar ke versi cadangan saat diklik
     setPakaiCadangan(prev => !prev);
-    // Fungsionalitas scaling gambar sebesar 1.2x saat diklik
-    // Pembatasan skala maksimum hingga 2x per gambar
-    setSkala(prev => Math.min(prev * 1.2, 2));
+    // Fitur: Setiap gambar dapat diskalakan naik sebesar 1.2x saat diklik.
+    // Fitur: Setiap gambar dapat diskalakan hingga maksimum 2x.
+    setSkala(prev => Math.min(prev * 1.2, 2)); // Math.min(..., 2) membatasi skala hingga 2x
   };
 
   // Tentukan URL gambar yang akan digunakan (asli atau cadangan)
@@ -82,12 +83,12 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
   return (
     // Tombol/area yang bisa diklik untuk interaksi gambar
     // Menggunakan kelas Tailwind untuk styling: flex-1, aspect-square, rounded-lg, overflow-hidden, dll.
-    // Ini menggantikan StyleSheet.create pada React Native dan memastikan ukuran sel gambar yang seragam.
     <button
       onClick={tekan}
       className="flex-1 aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
       style={{
-        // Setiap gambar harus diskalakan secara individual. State 'skala' berada di komponen ini.
+        // Fitur: Setiap gambar dapat diskalakan naik secara individual pada setiap klik.
+        // Transform CSS diterapkan berdasarkan state 'skala' yang unik untuk setiap komponen GambarInteraktif.
         transform: `scale(${skala})`,
         transition: 'transform 0.2s ease-in-out',
       }}
@@ -139,13 +140,13 @@ export default function App() {
         <div key={i} className="flex flex-row mb-2 sm:mb-4 justify-center">
           {baris.map(item => (
             // Wrapper untuk setiap kotak gambar dengan ukuran responsif
-            // Ukuran sel gambar yang sama untuk semua gambar diatur di sini
             <div
               key={item.penanda}
               className="mx-1 sm:mx-2 flex-shrink-0"
               style={{
-                // Ukuran kotak responsif: 1/3 dari lebar layar minus margin
-                // Ini memastikan ukuran sel gambar yang seragam dan responsif
+                // Fitur: Semua sel gambar harus memiliki ukuran yang sama.
+                // Ukuran kotak responsif: 1/3 dari lebar layar minus margin.
+                // Ini memastikan ukuran sel gambar yang seragam dan responsif.
                 width: lebarJendela / 3 - (lebarJendela < 640 ? 8 : 16), // 8px untuk mobile, 16px untuk sm+
                 height: lebarJendela / 3 - (lebarJendela < 640 ? 8 : 16),
               }}
@@ -161,7 +162,6 @@ export default function App() {
 
   return (
     // Container utama dengan gaya latar belakang dan font Inter
-    // Menggantikan SafeAreaView dan StyleSheet.create.
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 font-inter">
       {/* Script untuk memuat Tailwind CSS */}
       <script src="https://cdn.tailwindcss.com"></script>
