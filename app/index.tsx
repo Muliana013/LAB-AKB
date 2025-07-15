@@ -72,7 +72,7 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
   const tekan = () => {
     if (gagalMuat) return;
     setPakaiCadangan((prev) => !prev);
-    setSkala((prev) => Math.min(prev * 1.2, 2));
+    setSkala((prev) => Math.min(prev + 0.2, 2)); // naik bertahap max 2x
   };
 
   const gambarDipakai = pakaiCadangan ? sumber.cadangan : sumber.asli;
@@ -107,10 +107,7 @@ export default function Grid3x3Tetap() {
       {data.map((item) => (
         <View
           key={item.penanda}
-          style={[
-            gaya.kotakWrapper,
-            { width: ukuranKotak, height: ukuranKotak },
-          ]}
+          style={[gaya.kotakWrapper, { width: ukuranKotak, height: ukuranKotak }]}
         >
           <GambarInteraktif sumber={item} />
         </View>
