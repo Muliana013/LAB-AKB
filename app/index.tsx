@@ -1,166 +1,124 @@
 import React, { useState, useEffect } from 'react';
 
-// Data gambar yang akan ditampilkan - menggunakan URL yang lebih reliable
-const IMAGE_DATA = [
+// Data gambar dengan URL asli dan cadangan
+const IMAGE_LIST = [
   {
     id: 1,
-    original: 'https://picsum.photos/300/300?random=1',
-    placeholder: 'https://placehold.co/300x300/FF5733/FFFFFF?text=Placeholder+1',
+    primary: 'https://picsum.photos/300/300?random=1',
+    fallback: 'https://placehold.co/300x300/FF5733/FFFFFF?text=Fallback+1',
   },
   {
     id: 2,
-    original: 'https://picsum.photos/300/300?random=2',
-    placeholder: 'https://placehold.co/300x300/33FF57/FFFFFF?text=Placeholder+2',
+    primary: 'https://picsum.photos/300/300?random=2',
+    fallback: 'https://placehold.co/300x300/33FF57/FFFFFF?text=Fallback+2',
   },
   {
     id: 3,
-    original: 'https://picsum.photos/300/300?random=3',
-    placeholder: 'https://placehold.co/300x300/3357FF/FFFFFF?text=Placeholder+3',
+    primary: 'https://picsum.photos/300/300?random=3',
+    fallback: 'https://placehold.co/300x300/3357FF/FFFFFF?text=Fallback+3',
   },
   {
     id: 4,
-    original: 'https://picsum.photos/300/300?random=4',
-    placeholder: 'https://placehold.co/300x300/FF33A1/FFFFFF?text=Placeholder+4',
+    primary: 'https://picsum.photos/300/300?random=4',
+    fallback: 'https://placehold.co/300x300/FF33A1/FFFFFF?text=Fallback+4',
   },
   {
     id: 5,
-    original: 'https://picsum.photos/300/300?random=5',
-    placeholder: 'https://placehold.co/300x300/A1FF33/FFFFFF?text=Placeholder+5',
+    primary: 'https://picsum.photos/300/300?random=5',
+    fallback: 'https://placehold.co/300x300/A1FF33/FFFFFF?text=Fallback+5',
   },
   {
     id: 6,
-    original: 'https://picsum.photos/300/300?random=6',
-    placeholder: 'https://placehold.co/300x300/33A1FF/FFFFFF?text=Placeholder+6',
+    primary: 'https://picsum.photos/300/300?random=6',
+    fallback: 'https://placehold.co/300x300/33A1FF/FFFFFF?text=Fallback+6',
   },
   {
     id: 7,
-    original: 'https://picsum.photos/300/300?random=7',
-    placeholder: 'https://placehold.co/300x300/FF3333/FFFFFF?text=Placeholder+7',
+    primary: 'https://picsum.photos/300/300?random=7',
+    fallback: 'https://placehold.co/300x300/FF3333/FFFFFF?text=Fallback+7',
   },
   {
     id: 8,
-    original: 'https://picsum.photos/300/300?random=8',
-    placeholder: 'https://placehold.co/300x300/33FF33/FFFFFF?text=Placeholder+8',
+    primary: 'https://picsum.photos/300/300?random=8',
+    fallback: 'https://placehold.co/300x300/33FF33/FFFFFF?text=Fallback+8',
   },
   {
     id: 9,
-    original: 'https://picsum.photos/300/300?random=9',
-    placeholder: 'https://placehold.co/300x300/3333FF/FFFFFF?text=Placeholder+9',
+    primary: 'https://picsum.photos/300/300?random=9',
+    fallback: 'https://placehold.co/300x300/3333FF/FFFFFF?text=Fallback+9',
   },
 ];
 
-// Tipe data untuk properti gambar
-type ImageData = {
-  id: number;
-  original: string;
-  placeholder: string;
-};
-
-// Komponen ImageInteractive untuk setiap gambar di grid
-const ImageInteractive = ({ 
-  data, 
-  scale, 
-  onUpdateScale 
-}: { 
-  data: ImageData; 
-  scale: number; 
-  onUpdateScale: (id: number, scale: number) => void; 
+// Komponen individu untuk setiap gambar
+const ImageCard = ({
+  data,
+  scale,
+  onScaleChange,
+}: {
+  data: {
+    id: number;
+    primary: string;
+    fallback: string;
+  };
+  scale: number;
+  onScaleChange: (id: number, newScale: number) => void;
 }) => {
-  // State untuk menentukan apakah menggunakan gambar placeholder
-  const [usePlaceholder, setUsePlaceholder] = useState(false);
-  // State untuk menandai apakah gambar gagal dimuat
-  const [loadFailed, setLoadFailed] = useState(false);
-  // State untuk loading
+  const [useFallback, setUseFallback] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  // Fungsi untuk mereset skala gambar ke 1
-  const resetScale = () => {
-    onUpdateScale(data.id, 1);
+  const toggleScale = () => {
+    if (loading || error) return;
+    const nextScale = scale >= 2 ? 1 : Math.min(scale * 1.2, 2);
+    onScaleChange(data.id, nextScale);
+    setUseFallback((prev) => !prev);
   };
 
-  // Fungsi yang dipanggil saat gambar diklik
-  const handleClick = () => {
-    // Jika gambar sudah gagal dimuat atau masih loading, jangan lakukan apa-apa
-    if (loadFailed || loading) return;
-    
-    // Logika penskalaan gambar dengan pembatasan maksimum 2x
-    let newScale: number;
-    if (scale >= 2) {
-      // Jika sudah mencapai skala maksimum, reset ke 1
-      newScale = 1;
-    } else {
-      // Perbesar skala sebesar 1.2x dengan batas maksimum 2x
-      newScale = Math.min(scale * 1.2, 2);
-    }
-    
-    // Update skala melalui callback ke parent component
-    onUpdateScale(data.id, newScale);
-    
-    // Fungsionalitas perubahan gambar ke versi placeholder saat diklik
-    setUsePlaceholder(prev => !prev);
-  };
-
-  // Handler untuk ketika gambar berhasil dimuat
-  const handleImageLoad = () => {
+  const handleLoad = () => {
     setLoading(false);
-    setLoadFailed(false);
+    setError(false);
   };
 
-  // Handler untuk ketika gambar gagal dimuat
-  const handleImageError = () => {
+  const handleError = () => {
     setLoading(false);
-    setLoadFailed(true);
+    setError(true);
   };
-
-  // Tentukan URL gambar yang akan digunakan (original atau placeholder)
-  const imageUrl = usePlaceholder ? data.placeholder : data.original;
 
   return (
-    // Container dengan ukuran yang konsisten dan sama untuk semua sel gambar
-    <div className="w-full h-full flex flex-col">
-      {/* Tombol/area yang bisa diklik untuk interaksi gambar */}
+    <div className="flex flex-col items-center">
       <button
-        onClick={handleClick}
+        onClick={toggleScale}
         disabled={loading}
-        className={`w-full h-full rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 ${
-          loading ? 'cursor-wait' : 'cursor-pointer'
+        className={`relative w-full h-full rounded-lg border-2 transition-all ${
+          loading ? 'cursor-wait' : 'hover:border-blue-400'
         }`}
         style={{
-          // Penskalaan gambar dengan transformasi CSS
           transform: `scale(${scale})`,
           transition: 'transform 0.3s ease-in-out',
         }}
       >
         {loading ? (
-          // Tampilan loading
-          <div className="w-full h-full bg-gray-200 flex justify-center items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <div className="w-32 h-32 bg-gray-200 flex items-center justify-center">
+            <div className="animate-spin h-6 w-6 border-2 border-blue-500 border-b-transparent rounded-full" />
           </div>
-        ) : loadFailed ? (
-          // Tampilan error jika gambar gagal dimuat
-          <div className="w-full h-full bg-red-100 flex justify-center items-center text-red-700 text-sm font-medium">
-            <div className="text-center">
-              <div className="text-2xl mb-2">⚠️</div>
-              <div>Gagal Muat</div>
-            </div>
+        ) : error ? (
+          <div className="w-32 h-32 bg-red-200 flex flex-col items-center justify-center text-sm text-red-700">
+            ⚠️ Gagal Muat
           </div>
         ) : (
-          // Tampilan gambar utama dengan ukuran yang konsisten
           <img
-            src={imageUrl}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
+            src={useFallback ? data.fallback : data.primary}
+            onLoad={handleLoad}
+            onError={handleError}
             alt={`Gambar ${data.id}`}
-            className="w-full h-full object-cover"
+            className="w-32 h-32 object-cover rounded-lg"
           />
         )}
       </button>
-      
-      {/* Tombol reset skala untuk setiap gambar */}
       {scale > 1 && (
         <button
-          onClick={resetScale}
-          className="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+          onClick={() => onScaleChange(data.id, 1)}
+          className="mt-2 text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded"
         >
           Reset Skala
         </button>
@@ -169,51 +127,65 @@ const ImageInteractive = ({
   );
 };
 
-// Komponen utama aplikasi
 export default function App() {
-  // State untuk lebar jendela, digunakan untuk responsivitas
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  
-  // State global untuk mengelola skala semua gambar
-  const [imageScales, setImageScales] = useState<{[key: number]: number}>(
-    // Inisialisasi skala untuk semua gambar dengan nilai 1
-    IMAGE_DATA.reduce((acc, item) => {
+
+  const [scales, setScales] = useState(() =>
+    IMAGE_LIST.reduce((acc, item) => {
       acc[item.id] = 1;
       return acc;
-    }, {} as {[key: number]: number})
+    }, {} as Record<number, number>)
   );
 
-  // Efek samping untuk memperbarui lebar jendela saat diubah ukurannya
   useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
-    // Cleanup listener saat komponen di-unmount
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fungsi untuk mengupdate skala gambar individual
-  const updateImageScale = (id: number, scale: number) => {
-    setImageScales(prev => ({
-      ...prev,
-      [id]: scale
-    }));
+  const updateScale = (id: number, newScale: number) => {
+    setScales((prev) => ({ ...prev, [id]: newScale }));
   };
 
-  // Fungsi untuk mereset semua skala gambar ke 1
-  const resetAllScales = () => {
-    setImageScales(
-      IMAGE_DATA.reduce((acc, item) => {
-        acc[item.id] = 1;
-        return acc;
-      }, {} as {[key: number]: number})
-    );
+  const resetAll = () => {
+    const resetScales = IMAGE_LIST.reduce((acc, item) => {
+      acc[item.id] = 1;
+      return acc;
+    }, {} as Record<number, number>);
+    setScales(resetScales);
   };
 
-  // Menghitung ukuran sel gambar yang seragam berdasarkan lebar jendela
-  const cellSize = Math.floor((windowWidth * 0.8) / 3) - 16; // 80% dari lebar layar dibagi 3, dikurangi margin
-  const minCellSize = Math.max(cellSize, 120); // Minimal 120px
+  return (
+    <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center font-sans">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+        Galeri Gambar Interaktif
+      </h1>
 
-  // Fungsi untuk merender grid gambar dengan uk
+      <div className="w-full max-w-5xl bg-white shadow rounded-xl p-6">
+        <div className="mb-6 text-center">
+          <button
+            onClick={resetAll}
+            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+          >
+            Reset Semua Skala
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 place-items-center">
+          {IMAGE_LIST.map((img) => (
+            <ImageCard
+              key={img.id}
+              data={img}
+              scale={scales[img.id]}
+              onScaleChange={updateScale}
+            />
+          ))}
+        </div>
+
+        <div className="mt-6 text-sm text-gray-600 text-center">
+          Klik gambar untuk memperbesar dan menampilkan versi alternatif.
+        </div>
+      </div>
+    </div>
+  );
+}
