@@ -57,11 +57,17 @@ type DataGambar = {
 };
 
 // Komponen GambarInteraktif untuk setiap gambar di grid
-const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
+const GambarInteraktif = ({ 
+  sumber, 
+  skala, 
+  onUpdateSkala 
+}: { 
+  sumber: DataGambar; 
+  skala: number; 
+  onUpdateSkala: (penanda: number, skala: number) => void; 
+}) => {
   // State untuk menentukan apakah menggunakan gambar cadangan
   const [pakaiCadangan, setPakaiCadangan] = useState(false);
-  // State untuk skala gambar saat diklik dengan pembatasan maksimum 2x
-  const [skala, setSkala] = useState(1);
   // State untuk menandai apakah gambar gagal dimuat
   const [gagalMuat, setGagalMuat] = useState(false);
   // State untuk loading
@@ -69,7 +75,7 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
 
   // Fungsi untuk mereset skala gambar ke 1
   const resetSkala = () => {
-    setSkala(1);
+    onUpdateSkala(sumber.penanda, 1);
   };
 
   // Fungsi yang dipanggil saat gambar diklik
@@ -77,14 +83,18 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
     // Jika gambar sudah gagal dimuat atau masih loading, jangan lakukan apa-apa
     if (gagalMuat || sedangMuat) return;
     
-    // Fungsi penskalaan gambar dengan pembatasan maksimum 2x
+    // Logika penskalaan gambar dengan pembatasan maksimum 2x
+    let skalaBaru: number;
     if (skala >= 2) {
       // Jika sudah mencapai skala maksimum, reset ke 1
-      setSkala(1);
+      skalaBaru = 1;
     } else {
       // Perbesar skala sebesar 1.2x dengan batas maksimum 2x
-      setSkala(prev => Math.min(prev * 1.2, 2));
+      skalaBaru = Math.min(skala * 1.2, 2);
     }
+    
+    // Update skala melalui callback ke parent component
+    onUpdateSkala(sumber.penanda, skalaBaru);
     
     // Fungsionalitas perubahan gambar ke versi cadangan saat diklik
     setPakaiCadangan(prev => !prev);
@@ -163,6 +173,15 @@ const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
 export default function App() {
   // State untuk lebar jendela, digunakan untuk responsivitas
   const [lebarJendela, setLebarJendela] = useState(window.innerWidth);
+  
+  // State global untuk mengelola skala semua gambar
+  const [skalaGambar, setSkalaGambar] = useState<{[key: number]: number}>(
+    // Inisialisasi skala untuk semua gambar dengan nilai 1
+    GAMBAR_DATA.reduce((acc, item) => {
+      acc[item.penanda] = 1;
+      return acc;
+    }, {} as {[key: number]: number})
+  );
 
   // Efek samping untuk memperbarui lebar jendela saat diubah ukurannya
   useEffect(() => {
@@ -174,6 +193,24 @@ export default function App() {
     // Cleanup listener saat komponen di-unmount
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Fungsi untuk mengupdate skala gambar individual
+  const updateSkalaGambar = (penanda: number, skala: number) => {
+    setSkalaGambar(prev => ({
+      ...prev,
+      [penanda]: skala
+    }));
+  };
+
+  // Fungsi untuk mereset semua skala gambar ke 1
+  const resetSemuaSkala = () => {
+    setSkalaGambar(
+      GAMBAR_DATA.reduce((acc, item) => {
+        acc[item.penanda] = 1;
+        return acc;
+      }, {} as {[key: number]: number})
+    );
+  };
 
   // Menghitung ukuran sel gambar yang seragam berdasarkan lebar jendela
   const ukuranSel = Math.floor((lebarJendela * 0.8) / 3) - 16; // 80% dari lebar layar dibagi 3, dikurangi margin
@@ -200,7 +237,11 @@ export default function App() {
                 height: `${ukuranSelMinimal}px`,
               }}
             >
-              <GambarInteraktif sumber={item} />
+              <GambarInteraktif 
+                sumber={item} 
+                skala={skalaGambar[item.penanda]} 
+                onUpdateSkala={updateSkalaGambar}
+              />
             </div>
           ))}
         </div>
@@ -228,6 +269,25 @@ export default function App() {
       
       {/* Container grid dengan ukuran yang responsif */}
       <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-6">
+        {/* Kontrol global untuk skala */}
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={resetSemuaSkala}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+          >
+            Reset Semua Skala
+          </button>
+        </div>
+        
+        {/* Indikator skala gambar */}
+        <div className="grid grid-cols-3 gap-2 mb-4 text-xs text-gray-600">
+          {GAMBAR_DATA.map(item => (
+            <div key={item.penanda} className="text-center">
+              Gambar {item.penanda}: {skalaGambar[item.penanda].toFixed(1)}x
+            </div>
+          ))}
+        </div>
+        
         <div className="flex flex-col items-center">
           {renderGrid()}
         </div>
