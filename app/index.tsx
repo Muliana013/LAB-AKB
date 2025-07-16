@@ -1,50 +1,50 @@
 import React, { useState, useEffect } from 'react';
 
-// Data gambar yang akan ditampilkan
+// Data gambar yang akan ditampilkan - menggunakan URL yang lebih reliable
 const GAMBAR_DATA = [
   {
     penanda: 1,
-    asli: 'https://i.pinimg.com/736x/05/c6/1e/05c61e341cdb3b673b072eeeaa2ebc8f.jpg',
+    asli: 'https://picsum.photos/300/300?random=1',
     cadangan: 'https://placehold.co/300x300/FF5733/FFFFFF?text=Cadangan+1',
   },
   {
     penanda: 2,
-    asli: 'https://i.pinimg.com/1200x/ee/29/35/ee293577f437e42cebe2029d65701b48.jpg',
+    asli: 'https://picsum.photos/300/300?random=2',
     cadangan: 'https://placehold.co/300x300/33FF57/FFFFFF?text=Cadangan+2',
   },
   {
     penanda: 3,
-    asli: 'https://i.pinimg.com/736x/25/96/c4/2596c41bd82af36ff7398c500145b67f.jpg',
+    asli: 'https://picsum.photos/300/300?random=3',
     cadangan: 'https://placehold.co/300x300/3357FF/FFFFFF?text=Cadangan+3',
   },
   {
     penanda: 4,
-    asli: 'https://i.pinimg.com/736x/37/b4/64/37b464725d77c22ac2365c3913c0830a.jpg',
+    asli: 'https://picsum.photos/300/300?random=4',
     cadangan: 'https://placehold.co/300x300/FF33A1/FFFFFF?text=Cadangan+4',
   },
   {
     penanda: 5,
-    asli: 'https://i.pinimg.com/736x/1a/24/97/1a24973a70046e304372c7e41aaca367.jpg',
+    asli: 'https://picsum.photos/300/300?random=5',
     cadangan: 'https://placehold.co/300x300/A1FF33/FFFFFF?text=Cadangan+5',
   },
   {
     penanda: 6,
-    asli: 'https://i.pinimg.com/736x/9e/24/7b/9e247bf3d1b2e2ef9b53c1114e3348bf.jpg',
+    asli: 'https://picsum.photos/300/300?random=6',
     cadangan: 'https://placehold.co/300x300/33A1FF/FFFFFF?text=Cadangan+6',
   },
   {
     penanda: 7,
-    asli: 'https://i.pinimg.com/736x/49/4c/31/494c31c6871a375c2d4196f8ccac6e11.jpg',
+    asli: 'https://picsum.photos/300/300?random=7',
     cadangan: 'https://placehold.co/300x300/FF3333/FFFFFF?text=Cadangan+7',
   },
   {
     penanda: 8,
-    asli: 'https://i.pinimg.com/736x/df/ea/40/dfea40b87c321e095560b726cb3f2b11.jpg',
+    asli: 'https://picsum.photos/300/300?random=8',
     cadangan: 'https://placehold.co/300x300/33FF33/FFFFFF?text=Cadangan+8',
   },
   {
     penanda: 9,
-    asli: 'https://i.pinimg.com/736x/e0/2e/17/e02e1780433be4095b53106ee687eb7e.jpg',
+    asli: 'https://picsum.photos/300/300?random=9',
     cadangan: 'https://placehold.co/300x300/3333FF/FFFFFF?text=Cadangan+9',
   },
 ];
@@ -60,55 +60,102 @@ type DataGambar = {
 const GambarInteraktif = ({ sumber }: { sumber: DataGambar }) => {
   // State untuk menentukan apakah menggunakan gambar cadangan
   const [pakaiCadangan, setPakaiCadangan] = useState(false);
-  // State untuk skala gambar saat diklik.
-  // Fitur: Setiap gambar memiliki state scaling sendiri.
+  // State untuk skala gambar saat diklik dengan pembatasan maksimum 2x
   const [skala, setSkala] = useState(1);
   // State untuk menandai apakah gambar gagal dimuat
   const [gagalMuat, setGagalMuat] = useState(false);
+  // State untuk loading
+  const [sedangMuat, setSedangMuat] = useState(true);
+
+  // Fungsi untuk mereset skala gambar ke 1
+  const resetSkala = () => {
+    setSkala(1);
+  };
 
   // Fungsi yang dipanggil saat gambar diklik
   const tekan = () => {
-    // Jika gambar sudah gagal dimuat, jangan lakukan apa-apa
-    if (gagalMuat) return;
-    // Fitur: Fungsionalitas perubahan gambar ke versi cadangan saat diklik
+    // Jika gambar sudah gagal dimuat atau masih loading, jangan lakukan apa-apa
+    if (gagalMuat || sedangMuat) return;
+    
+    // Fungsi penskalaan gambar dengan pembatasan maksimum 2x
+    if (skala >= 2) {
+      // Jika sudah mencapai skala maksimum, reset ke 1
+      setSkala(1);
+    } else {
+      // Perbesar skala sebesar 1.2x dengan batas maksimum 2x
+      setSkala(prev => Math.min(prev * 1.2, 2));
+    }
+    
+    // Fungsionalitas perubahan gambar ke versi cadangan saat diklik
     setPakaiCadangan(prev => !prev);
-    // Fitur: Setiap gambar dapat diskalakan naik sebesar 1.2x saat diklik.
-    // Fitur: Setiap gambar dapat diskalakan hingga maksimum 2x.
-    setSkala(prev => Math.min(prev * 1.2, 2)); // Math.min(..., 2) membatasi skala hingga 2x
+  };
+
+  // Handler untuk ketika gambar berhasil dimuat
+  const handleImageLoad = () => {
+    setSedangMuat(false);
+    setGagalMuat(false);
+  };
+
+  // Handler untuk ketika gambar gagal dimuat
+  const handleImageError = () => {
+    setSedangMuat(false);
+    setGagalMuat(true);
   };
 
   // Tentukan URL gambar yang akan digunakan (asli atau cadangan)
   const gambarDipakai = pakaiCadangan ? sumber.cadangan : sumber.asli;
 
   return (
-    // Tombol/area yang bisa diklik untuk interaksi gambar
-    // Menggunakan kelas Tailwind untuk styling: flex-1, aspect-square, rounded-lg, overflow-hidden, dll.
-    <button
-      onClick={tekan}
-      className="flex-1 aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-      style={{
-        // Fitur: Setiap gambar dapat diskalakan naik secara individual pada setiap klik.
-        // Transform CSS diterapkan berdasarkan state 'skala' yang unik untuk setiap komponen GambarInteraktif.
-        transform: `scale(${skala})`,
-        transition: 'transform 0.2s ease-in-out',
-      }}
-    >
-      {gagalMuat ? (
-        // Tampilan error jika gambar gagal dimuat
-        <div className="flex flex-1 bg-red-100 justify-center items-center rounded-lg text-red-700 text-sm font-medium">
-          Gagal Muat
-        </div>
-      ) : (
-        // Tampilan gambar utama
-        <img
-          src={gambarDipakai}
-          // Handler error jika gambar tidak bisa dimuat
-          onError={() => setGagalMuat(true)}
-          alt={`Gambar ${sumber.penanda}`}
-          className="w-full h-full object-cover rounded-lg"
-        />
+    // Container dengan ukuran yang konsisten dan sama untuk semua sel gambar
+    <div className="w-full h-full flex flex-col">
+      {/* Tombol/area yang bisa diklik untuk interaksi gambar */}
+      <button
+        onClick={tekan}
+        disabled={sedangMuat}
+        className={`w-full h-full rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 bg-gray-50 ${
+          sedangMuat ? 'cursor-wait' : 'cursor-pointer'
+        }`}
+        style={{
+          // Penskalaan gambar dengan transformasi CSS
+          transform: `scale(${skala})`,
+          transition: 'transform 0.3s ease-in-out',
+        }}
+      >
+        {sedangMuat ? (
+          // Tampilan loading
+          <div className="w-full h-full bg-gray-200 flex justify-center items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : gagalMuat ? (
+          // Tampilan error jika gambar gagal dimuat
+          <div className="w-full h-full bg-red-100 flex justify-center items-center text-red-700 text-sm font-medium">
+            <div className="text-center">
+              <div className="text-2xl mb-2">⚠️</div>
+              <div>Gagal Muat</div>
+            </div>
+          </div>
+        ) : (
+          // Tampilan gambar utama dengan ukuran yang konsisten
+          <img
+            src={gambarDipakai}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            alt={`Gambar ${sumber.penanda}`}
+            className="w-full h-full object-cover"
+          />
+        )}
+      </button>
+      
+      {/* Tombol reset skala untuk setiap gambar */}
+      {skala > 1 && (
+        <button
+          onClick={resetSkala}
+          className="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+        >
+          Reset Skala
+        </button>
       )}
-    </button>
+    </div>
   );
 };
 
@@ -128,7 +175,11 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fungsi untuk merender grid gambar
+  // Menghitung ukuran sel gambar yang seragam berdasarkan lebar jendela
+  const ukuranSel = Math.floor((lebarJendela * 0.8) / 3) - 16; // 80% dari lebar layar dibagi 3, dikurangi margin
+  const ukuranSelMinimal = Math.max(ukuranSel, 120); // Minimal 120px
+
+  // Fungsi untuk merender grid gambar dengan ukuran yang konsisten
   const renderGrid = () => {
     const grid: JSX.Element[] = [];
     // Membuat 3 baris
@@ -136,19 +187,17 @@ export default function App() {
       // Mengambil 3 item gambar untuk setiap baris
       const baris = GAMBAR_DATA.slice(i * 3, i * 3 + 3);
       grid.push(
-        // Menggunakan flexbox dan margin untuk tata letak baris
-        <div key={i} className="flex flex-row mb-2 sm:mb-4 justify-center">
+        // Grid container dengan gap yang konsisten
+        <div key={i} className="flex flex-row gap-4 mb-4 justify-center">
           {baris.map(item => (
-            // Wrapper untuk setiap kotak gambar dengan ukuran responsif
+            // Wrapper untuk setiap kotak gambar dengan ukuran yang sama dan eksplisit
             <div
               key={item.penanda}
-              className="mx-1 sm:mx-2 flex-shrink-0"
+              className="flex-shrink-0"
               style={{
-                // Fitur: Semua sel gambar harus memiliki ukuran yang sama.
-                // Ukuran kotak responsif: 1/3 dari lebar layar minus margin.
-                // Ini memastikan ukuran sel gambar yang seragam dan responsif.
-                width: lebarJendela / 3 - (lebarJendela < 640 ? 8 : 16), // 8px untuk mobile, 16px untuk sm+
-                height: lebarJendela / 3 - (lebarJendela < 640 ? 8 : 16),
+                // Ukuran sel gambar yang seragam dan eksplisit
+                width: `${ukuranSelMinimal}px`,
+                height: `${ukuranSelMinimal}px`,
               }}
             >
               <GambarInteraktif sumber={item} />
@@ -161,32 +210,38 @@ export default function App() {
   };
 
   return (
-    // Container utama dengan gaya latar belakang dan font Inter
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 font-inter">
-      {/* Script untuk memuat Tailwind CSS */}
-      <script src="https://cdn.tailwindcss.com"></script>
-      {/* Konfigurasi Tailwind CSS untuk font Inter */}
+    // Container utama dengan font Inter
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
       <style>
         {`
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-          .font-inter {
+          body {
             font-family: 'Inter', sans-serif;
           }
         `}
       </style>
+      
       {/* Judul aplikasi */}
       <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-8 mt-4 text-center">
         Galeri Gambar Interaktif
       </h1>
-      {/* ScrollView yang diadaptasi menjadi div dengan overflow-y-auto */}
-      <div className="w-full max-w-4xl overflow-y-auto p-4 bg-white rounded-xl shadow-lg">
+      
+      {/* Container grid dengan ukuran yang responsif */}
+      <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-6">
         <div className="flex flex-col items-center">
           {renderGrid()}
         </div>
       </div>
-      <p className="text-sm text-gray-600 mt-6 text-center">
-        Klik pada gambar untuk melihat versi cadangan dan memperbesar!
-      </p>
+      
+      {/* Instruksi penggunaan */}
+      <div className="text-center mt-6 max-w-2xl">
+        <p className="text-sm text-gray-600 mb-2">
+          Klik pada gambar untuk melihat versi cadangan dan memperbesar!
+        </p>
+        <p className="text-xs text-gray-500">
+          Skala maksimum: 2x | Klik lagi saat mencapai maksimum untuk mereset
+        </p>
+      </div>
     </div>
   );
 }
