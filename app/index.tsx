@@ -1,106 +1,113 @@
 import React, { useState } from "react";
 import {
-  Dimensions,
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  Image,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
 } from "react-native";
 
-const SISI_GRID = 3;
-const TOTAL_ITEM = 9;
-const LEBAR_LAYAR = Dimensions.get("window").width;
-const UKURAN_KOTAK = Math.floor(LEBAR_LAYAR / SISI_GRID);
-
-// Buat array gambar utama dan cadangan
-const daftarGambar = Array.from({ length: TOTAL_ITEM }, (_, index) => ({
+const DATA_GAMBAR = Array.from({ length: 9 }, (_, index) => ({
   id: index,
-  gambarUtama: `https://picsum.photos/seed/gambar${index}/200`,
-  gambarCadangan: `https://picsum.photos/seed/cadangan${index}/200`,
+  utama: `https://picsum.photos/seed/utama${index}/200`,
+  cadangan: `https://picsum.photos/seed/cadangan${index}/200`,
 }));
 
-const KotakGambar = ({
-  sumber,
-}: {
-  sumber: { gambarUtama: string; gambarCadangan: string };
-}) => {
+const KotakGambar = ({ utama, cadangan }: { utama: string; cadangan: string }) => {
   const [pakaiCadangan, setPakaiCadangan] = useState(false);
-  const [skala, setSkala] = useState(1);
+  const [zoom, setZoom] = useState(1);
   const [gagal, setGagal] = useState(false);
 
-  const urlSaatIni = pakaiCadangan ? sumber.gambarCadangan : sumber.gambarUtama;
+  const gambar = pakaiCadangan ? cadangan : utama;
 
-  const saatKlik = () => {
+  const saatTekan = () => {
     if (gagal) return;
-
-    setPakaiCadangan((nilaiSebelumnya) => !nilaiSebelumnya);
-    setSkala((nilaiLama) => Math.min(nilaiLama * 1.2, 2));
+    setPakaiCadangan(!pakaiCadangan);
+    setZoom((lama) => Math.min(lama * 1.2, 2));
   };
 
   return (
-    <TouchableOpacity onPress={saatKlik} style={gaya.bingkaiKotak}>
+    <TouchableOpacity style={styles.kotak} onPress={saatTekan}>
       {gagal ? (
-        <View style={gaya.kotakError}>
-          <Text style={gaya.teksGagal}>X</Text>
+        <View style={styles.gagalBox}>
+          <Text style={styles.teksGagal}>X</Text>
         </View>
       ) : (
         <Image
-          source={{ uri: urlSaatIni }}
-          style={[gaya.gambar, { transform: [{ scale: skala }] }]}
+          source={{ uri: gambar }}
           onError={() => setGagal(true)}
+          style={[styles.gambar, { transform: [{ scale: zoom }] }]}
         />
       )}
     </TouchableOpacity>
   );
 };
 
-const GaleriGrid = () => {
+const GridGambarEksplisit = () => {
+  // Bagi 3x3 secara manual
+  const baris = [
+    DATA_GAMBAR.slice(0, 3),
+    DATA_GAMBAR.slice(3, 6),
+    DATA_GAMBAR.slice(6, 9),
+  ];
+
   return (
-    <SafeAreaView style={gaya.latar}>
-      <ScrollView contentContainerStyle={gaya.kontainerGrid}>
-        {daftarGambar.map((item) => (
-          <KotakGambar key={item.id} sumber={item} />
+    <SafeAreaView style={styles.latar}>
+      <ScrollView contentContainerStyle={styles.gridContainer}>
+        {baris.map((kolom, barisIndex) => (
+          <View key={barisIndex} style={styles.baris}>
+            {kolom.map((item) => (
+              <KotakGambar
+                key={item.id}
+                utama={item.utama}
+                cadangan={item.cadangan}
+              />
+            ))}
+          </View>
         ))}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
-export default GaleriGrid;
+export default GridGambarEksplisit;
 
-const gaya = StyleSheet.create({
+const styles = StyleSheet.create({
   latar: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: "#111",
   },
-  kontainerGrid: {
+  gridContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
+  baris: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "flex-start",
+    marginBottom: 10,
   },
-  bingkaiKotak: {
-    width: UKURAN_KOTAK,
-    height: UKURAN_KOTAK,
-    padding: 2,
+  kotak: {
+    width: 100,
+    height: 100,
+    marginHorizontal: 5,
   },
   gambar: {
     width: "100%",
     height: "100%",
     borderRadius: 10,
   },
-  kotakError: {
+  gagalBox: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#3a3a3a",
+    backgroundColor: "#444",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
   },
   teksGagal: {
-    color: "#ccc",
-    fontSize: 18,
+    color: "#fff",
+    fontSize: 16,
   },
 });
