@@ -10,80 +10,80 @@ import {
   View,
 } from "react-native";
 
-// Membuat data gambar utama dan alternatif (9 pasang)
-const DATA_GAMBAR = Array.from({ length: 9 }, (_, index) => ({
-  id: index + 1,
-  utama: `https://picsum.photos/seed/main${index}/200`,
-  alternatif: `https://picsum.photos/seed/alt${index}/200`,
+const SISI_GRID = 3;
+const TOTAL_ITEM = 9;
+const LEBAR_LAYAR = Dimensions.get("window").width;
+const UKURAN_KOTAK = Math.floor(LEBAR_LAYAR / SISI_GRID);
+
+// Buat array gambar utama dan cadangan
+const daftarGambar = Array.from({ length: TOTAL_ITEM }, (_, index) => ({
+  id: index,
+  gambarUtama: `https://picsum.photos/seed/gambar${index}/200`,
+  gambarCadangan: `https://picsum.photos/seed/cadangan${index}/200`,
 }));
 
-type GambarTipe = {
-  id: number;
-  utama: string;
-  alternatif: string;
-};
+const KotakGambar = ({
+  sumber,
+}: {
+  sumber: { gambarUtama: string; gambarCadangan: string };
+}) => {
+  const [pakaiCadangan, setPakaiCadangan] = useState(false);
+  const [skala, setSkala] = useState(1);
+  const [gagal, setGagal] = useState(false);
 
-const KotakGambar = ({ data }: { data: GambarTipe }) => {
-  const [pakaiAlternatif, setPakaiAlternatif] = useState(false);
-  const [skalaGambar, setSkalaGambar] = useState(1);
-  const [gagalMuat, setGagalMuat] = useState(false);
+  const urlSaatIni = pakaiCadangan ? sumber.gambarCadangan : sumber.gambarUtama;
 
-  const saatDitekan = () => {
-    if (gagalMuat) return;
+  const saatKlik = () => {
+    if (gagal) return;
 
-    setPakaiAlternatif(!pakaiAlternatif);
-    setSkalaGambar((sebelumnya) => Math.min(sebelumnya * 1.2, 2));
+    setPakaiCadangan((nilaiSebelumnya) => !nilaiSebelumnya);
+    setSkala((nilaiLama) => Math.min(nilaiLama * 1.2, 2));
   };
 
-  const urlGambar = pakaiAlternatif ? data.alternatif : data.utama;
-
   return (
-    <TouchableOpacity onPress={saatDitekan} style={gaya.kotak}>
-      {gagalMuat ? (
-        <View style={gaya.tampilanGagal}>
-          <Text style={gaya.teksGagal}>Tidak Bisa Dimuat</Text>
+    <TouchableOpacity onPress={saatKlik} style={gaya.bingkaiKotak}>
+      {gagal ? (
+        <View style={gaya.kotakError}>
+          <Text style={gaya.teksGagal}>X</Text>
         </View>
       ) : (
         <Image
-          source={{ uri: urlGambar }}
-          style={[gaya.gambar, { transform: [{ scale: skalaGambar }] }]}
-          onError={() => setGagalMuat(true)}
+          source={{ uri: urlSaatIni }}
+          style={[gaya.gambar, { transform: [{ scale: skala }] }]}
+          onError={() => setGagal(true)}
         />
       )}
     </TouchableOpacity>
   );
 };
 
-export default function GridGambarUtama() {
+const GaleriGrid = () => {
   return (
     <SafeAreaView style={gaya.latar}>
-      <ScrollView>
-        <View style={gaya.tataLetakGrid}>
-          {DATA_GAMBAR.map((item) => (
-            <KotakGambar key={item.id} data={item} />
-          ))}
-        </View>
+      <ScrollView contentContainerStyle={gaya.kontainerGrid}>
+        {daftarGambar.map((item) => (
+          <KotakGambar key={item.id} sumber={item} />
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
-// Mengatur ukuran sel berdasarkan lebar layar
-const lebar = Dimensions.get("window").width;
-const ukuran = lebar / 3;
+export default GaleriGrid;
 
 const gaya = StyleSheet.create({
   latar: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: "#121212",
   },
-  tataLetakGrid: {
+  kontainerGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "flex-start",
   },
-  kotak: {
-    width: ukuran,
-    height: ukuran,
+  bingkaiKotak: {
+    width: UKURAN_KOTAK,
+    height: UKURAN_KOTAK,
     padding: 2,
   },
   gambar: {
@@ -91,16 +91,16 @@ const gaya = StyleSheet.create({
     height: "100%",
     borderRadius: 10,
   },
-  tampilanGagal: {
+  kotakError: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#555",
-    borderRadius: 10,
+    backgroundColor: "#3a3a3a",
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 10,
   },
   teksGagal: {
     color: "#ccc",
-    fontSize: 13,
+    fontSize: 18,
   },
 });
