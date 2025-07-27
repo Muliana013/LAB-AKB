@@ -1,54 +1,127 @@
-import React from "react";
-import { View, Text } from "react-native";
+import React, { ComponentProps } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, ScrollView } from 'react-native';
+import { FontAwesome, Ionicons, MaterialCommunityIcons, Feather, AntDesign } from '@expo/vector-icons';
 
-export default function Index() {
-  // Daftar nama dari total 10 orang
-  const allNames = [
-    { name: "Yusran", font: "lato" },              // Static
-    { name: "Haikal", font: "opensans" },          // Static
-    { name: "Nurmisba", font: "bebasneue" },       // Static
-    { name: "Alviansyah Burhani", font: "poppins" }, // Static
-    { name: "Majeri", font: "playfair" },          // Static
-    { name: "Hamdani", font: "winkyrough" },       // Variable
-    { name: "Muliana", font: "roboto" },           // Variable
-    { name: "Indira", font: "montserrat" },        // Variable
-    { name: "Ilham", font: "merriweather" },       // Variable
-    { name: "Agung", font: "josefinsans" },        // Variable
-  ];
+// --- Tipe Data ---
 
-  // Misalnya posisi stambuk kamu adalah ke-3 (index ke-2)
-  const stambukIndex = 2;
+type IconData = {
+  nama: string;
+  sumber: keyof typeof IconSources;
+  warna: string;
+};
 
-  // Fungsi mengambil 5 nama sebelum dan 5 nama setelah posisi stambuk (termasuk stambuk)
-  function getNamesAround(data, centerIndex) {
-    const result = [];
-    const total = data.length;
+type ItemIkonProps = {
+  data: IconData;
+};
 
-    for (let i = -5; i < 5; i++) {
-      let idx = (centerIndex + i + total) % total;
-      result.push(data[idx]);
-    }
+// --- Pustaka Ikon ---
 
-    return result;
-  }
+const IconSources = {
+  FontAwesome: (props: ComponentProps<typeof FontAwesome>) => <FontAwesome {...props} />,
+  Ionicons: (props: ComponentProps<typeof Ionicons>) => <Ionicons {...props} />,
+  MaterialCommunityIcons: (props: ComponentProps<typeof MaterialCommunityIcons>) => <MaterialCommunityIcons {...props} />,
+  Feather: (props: ComponentProps<typeof Feather>) => <Feather {...props} />,
+  AntDesign: (props: ComponentProps<typeof AntDesign>) => <AntDesign {...props} />,
+};
 
-  const namesToDisplay = getNamesAround(allNames, stambukIndex);
+// --- Data Ikon ---
+
+const IKON_LIST: IconData[] = [
+  { nama: 'rocket', sumber: 'FontAwesome', warna: '#ff4757' },
+  { nama: 'planet', sumber: 'Ionicons', warna: '#ffa502' },
+  { nama: 'space-station', sumber: 'MaterialCommunityIcons', warna: '#747d8c' },
+  { nama: 'git-branch', sumber: 'Feather', warna: '#2ed573' },
+  { nama: 'codesquare', sumber: 'AntDesign', warna: '#1e90ff' },
+  { nama: 'heart', sumber: 'FontAwesome', warna: '#ff6b81' },
+  { nama: 'game-controller', sumber: 'Ionicons', warna: '#5352ed' },
+  { nama: 'coffee', sumber: 'Feather', warna: '#834d18' },
+  { nama: 'android', sumber: 'MaterialCommunityIcons', warna: '#a0d243' },
+  { nama: 'apple1', sumber: 'AntDesign', warna: '#ced6e0' },
+];
+
+// --- Komponen Kartu Ikon ---
+
+const ItemIkon = ({ data }: ItemIkonProps) => {
+  const KomponenIkon = IconSources[data.sumber];
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
-      {namesToDisplay.map((item, index) => (
-        <Text
-          key={index}
-          style={{
-            fontFamily: item.font,
-            fontSize: 20,
-            marginVertical: 5,
-            color: "#333",
-          }}
-        >
-          {item.name}
-        </Text>
-      ))}
+    <View style={styles.card}>
+      <KomponenIkon name={data.nama as any} size={44} color={data.warna} />
+      <Text style={styles.label}>{data.nama}</Text>
+      <Text style={styles.library}>{data.sumber}</Text>
     </View>
   );
+};
+
+// --- Komponen Utama ---
+
+export default function GaleriIkon() {
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <View style={styles.header}>
+          <Text style={styles.title}>Koleksi Ikon</Text>
+          <Text style={styles.subtitle}>Berbagai macam ikon dari berbagai pustaka</Text>
+        </View>
+        <View style={styles.grid}>
+          {IKON_LIST.map((item, idx) => (
+            <ItemIkon key={idx} data={item} />
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
+
+// --- Gaya ---
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#101010',
+  },
+  header: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#aaaaaa',
+    marginTop: 4,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+  },
+  card: {
+    backgroundColor: '#1c1c1c',
+    padding: 18,
+    margin: 6,
+    borderRadius: 14,
+    width: '42%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: '#2f2f2f',
+  },
+  label: {
+    marginTop: 10,
+    color: '#f1f1f1',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  library: {
+    fontSize: 11,
+    color: '#888',
+    marginTop: 2,
+  },
+});
